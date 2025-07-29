@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuCheckboxItem } from '@/components/ui/dropdown-menu';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { CalendarDays, TrendingUp, TrendingDown, DollarSign, PieChart, BarChart3, Download } from 'lucide-react';
@@ -16,10 +16,10 @@ import { toast } from 'sonner';
 interface ReportFilters {
   startDate: string;
   endDate: string;
-  accountId: string;
-  categoryId: string;
-  payeeId: string;
-  transactionType: string;
+  accountIds: string[];
+  categoryIds: string[];
+  payeeIds: string[];
+  transactionTypes: string[];
 }
 
 interface TransactionSummary {
@@ -65,10 +65,10 @@ export default function ReportsPage() {
   const [filters, setFilters] = useState<ReportFilters>({
     startDate: new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0],
     endDate: new Date().toISOString().split('T')[0],
-    accountId: '',
-    categoryId: '',
-    payeeId: '',
-    transactionType: '',
+    accountIds: [],
+    categoryIds: [],
+    payeeIds: [],
+    transactionTypes: [],
   });
 
   const [summary, setSummary] = useState<TransactionSummary>({
@@ -227,83 +227,119 @@ export default function ReportsPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="accountId">Account</Label>
-                <Select
-                  value={filters.accountId}
-                  onValueChange={(value) => setFilters({ ...filters, accountId: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="All Accounts" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="">All Accounts</SelectItem>
+                <Label>Account</Label>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" className="w-full justify-between">
+                      {filters.accountIds.length === 0 ? 'All Accounts' : `${filters.accountIds.length} selected`}
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-56">
                     {accounts.map((account) => (
-                      <SelectItem key={account.id} value={account.id}>
+                      <DropdownMenuCheckboxItem
+                        key={account.id}
+                        checked={filters.accountIds.includes(account.id)}
+                        onCheckedChange={(checked) => {
+                          setFilters((prev) => {
+                            const newIds = checked
+                              ? [...prev.accountIds, account.id]
+                              : prev.accountIds.filter((id) => id !== account.id);
+                            return { ...prev, accountIds: newIds };
+                          });
+                        }}
+                      >
                         {account.name}
-                      </SelectItem>
+                      </DropdownMenuCheckboxItem>
                     ))}
-                  </SelectContent>
-                </Select>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="categoryId">Category</Label>
-                <Select
-                  value={filters.categoryId}
-                  onValueChange={(value) => setFilters({ ...filters, categoryId: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="All Categories" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="">All Categories</SelectItem>
+                <Label>Category</Label>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" className="w-full justify-between">
+                      {filters.categoryIds.length === 0 ? 'All Categories' : `${filters.categoryIds.length} selected`}
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-56">
                     {categories.map((category) => (
-                      <SelectItem key={category.id} value={category.id}>
+                      <DropdownMenuCheckboxItem
+                        key={category.id}
+                        checked={filters.categoryIds.includes(category.id)}
+                        onCheckedChange={(checked) => {
+                          setFilters((prev) => {
+                            const newIds = checked
+                              ? [...prev.categoryIds, category.id]
+                              : prev.categoryIds.filter((id) => id !== category.id);
+                            return { ...prev, categoryIds: newIds };
+                          });
+                        }}
+                      >
                         <div className="flex items-center">
-                          <div 
-                            className="w-3 h-3 rounded-full mr-2"
-                            style={{ backgroundColor: category.color }}
-                          />
+                          <div className="w-3 h-3 rounded-full mr-2" style={{ backgroundColor: category.color }} />
                           {category.name}
                         </div>
-                      </SelectItem>
+                      </DropdownMenuCheckboxItem>
                     ))}
-                  </SelectContent>
-                </Select>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="payeeId">Payee</Label>
-                <Select
-                  value={filters.payeeId}
-                  onValueChange={(value) => setFilters({ ...filters, payeeId: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="All Payees" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="">All Payees</SelectItem>
+                <Label>Payee</Label>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" className="w-full justify-between">
+                      {filters.payeeIds.length === 0 ? 'All Payees' : `${filters.payeeIds.length} selected`}
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-56">
                     {payees.map((payee) => (
-                      <SelectItem key={payee.id} value={payee.id}>
+                      <DropdownMenuCheckboxItem
+                        key={payee.id}
+                        checked={filters.payeeIds.includes(payee.id)}
+                        onCheckedChange={(checked) => {
+                          setFilters((prev) => {
+                            const newIds = checked
+                              ? [...prev.payeeIds, payee.id]
+                              : prev.payeeIds.filter((id) => id !== payee.id);
+                            return { ...prev, payeeIds: newIds };
+                          });
+                        }}
+                      >
                         {payee.name}
-                      </SelectItem>
+                      </DropdownMenuCheckboxItem>
                     ))}
-                  </SelectContent>
-                </Select>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="transactionType">Type</Label>
-                <Select
-                  value={filters.transactionType}
-                  onValueChange={(value) => setFilters({ ...filters, transactionType: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="All Types" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="">All Types</SelectItem>
-                    <SelectItem value="income">Income</SelectItem>
-                    <SelectItem value="expense">Expense</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Label>Type</Label>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" className="w-full justify-between">
+                      {filters.transactionTypes.length === 0 ? 'All Types' : filters.transactionTypes.join(', ')}
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-56">
+                    {['income', 'expense'].map((type) => (
+                      <DropdownMenuCheckboxItem
+                        key={type}
+                        checked={filters.transactionTypes.includes(type)}
+                        onCheckedChange={(checked) => {
+                          setFilters((prev) => {
+                            const newTypes = checked
+                              ? [...prev.transactionTypes, type]
+                              : prev.transactionTypes.filter((t) => t !== type);
+                            return { ...prev, transactionTypes: newTypes };
+                          });
+                        }}
+                      >
+                        {type.charAt(0).toUpperCase() + type.slice(1)}
+                      </DropdownMenuCheckboxItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             </div>
           </CardContent>

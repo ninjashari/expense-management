@@ -19,6 +19,7 @@ interface DashboardStats {
     account_name: string;
     category_name?: string;
     payee_name?: string;
+    currency?: string; // Added currency to transaction interface
   }>;
 }
 
@@ -30,7 +31,7 @@ export default function DashboardPage() {
     accountsCount: 0,
     recentTransactions: [],
   });
-  const [accounts, setAccounts] = useState<Array<{name: string; type: string; balance: number}>>([]);
+  const [accounts, setAccounts] = useState<Array<{name: string; type: string; balance: number; currency?: string}>>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -58,6 +59,14 @@ export default function DashboardPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Utility to format currency based on currency code
+  const formatCurrency = (amount: number, currency = 'INR') => {
+    return new Intl.NumberFormat(currency === 'INR' ? 'en-IN' : 'en-US', {
+      style: 'currency',
+      currency: currency,
+    }).format(amount);
   };
 
   const StatCard = ({ 
@@ -112,20 +121,20 @@ export default function DashboardPage() {
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <StatCard
             title="Total Balance"
-            value={`$${stats.totalBalance.toLocaleString()}`}
+            value={formatCurrency(stats.totalBalance, accounts[0]?.currency || 'INR')}
             description="Across all accounts"
             icon={DollarSign}
           />
           <StatCard
             title="Monthly Income"
-            value={`$${stats.monthlyIncome.toLocaleString()}`}
+            value={formatCurrency(stats.monthlyIncome, accounts[0]?.currency || 'INR')}
             description="This month"
             icon={TrendingUp}
             trend="up"
           />
           <StatCard
             title="Monthly Expenses"
-            value={`$${stats.monthlyExpenses.toLocaleString()}`}
+            value={formatCurrency(stats.monthlyExpenses, accounts[0]?.currency || 'INR')}
             description="This month"
             icon={TrendingDown}
             trend="down"
@@ -179,7 +188,7 @@ export default function DashboardPage() {
                             ? 'text-green-600' 
                             : 'text-red-600'
                         }`}>
-                          {transaction.type === 'income' ? '+' : '-'}${Math.abs(transaction.amount).toLocaleString()}
+                          {transaction.type === 'income' ? '+' : '-'}{formatCurrency(Math.abs(transaction.amount), transaction.currency || accounts[0]?.currency || 'INR')}
                         </p>
                         <p className="text-xs text-muted-foreground">
                           {new Date(transaction.date).toLocaleDateString()}
@@ -214,7 +223,7 @@ export default function DashboardPage() {
                       <p className={`text-sm font-medium ${
                         account.balance < 0 ? 'text-red-600' : ''
                       }`}>
-                        {account.balance < 0 ? '-' : ''}${Math.abs(account.balance).toLocaleString()}
+                        {account.balance < 0 ? '-' : ''}{formatCurrency(Math.abs(account.balance), account.currency || 'INR')}
                       </p>
                     </div>
                   ))}

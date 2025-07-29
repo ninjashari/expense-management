@@ -376,14 +376,14 @@ export default function TransactionsPage() {
                         <div className="grid gap-2">
                           <Label htmlFor="category_id">Category (Optional)</Label>
                           <Select
-                            value={formData.category_id}
-                            onValueChange={(value) => setFormData({ ...formData, category_id: value })}
+                            value={formData.category_id || 'none'}
+                            onValueChange={(value) => setFormData({ ...formData, category_id: value === 'none' ? '' : value })}
                           >
                             <SelectTrigger>
                               <SelectValue placeholder="Select category" />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="">No category</SelectItem>
+                              <SelectItem value="none">No category</SelectItem>
                               {categories.map((category) => (
                                 <SelectItem key={category.id} value={category.id}>
                                   <div className="flex items-center">
@@ -402,14 +402,14 @@ export default function TransactionsPage() {
                         <div className="grid gap-2">
                           <Label htmlFor="payee_id">Payee (Optional)</Label>
                           <Select
-                            value={formData.payee_id}
-                            onValueChange={(value) => setFormData({ ...formData, payee_id: value })}
+                            value={formData.payee_id || 'none'}
+                            onValueChange={(value) => setFormData({ ...formData, payee_id: value === 'none' ? '' : value })}
                           >
                             <SelectTrigger>
                               <SelectValue placeholder="Select payee" />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="">No payee</SelectItem>
+                              <SelectItem value="none">No payee</SelectItem>
                               {payees.map((payee) => (
                                 <SelectItem key={payee.id} value={payee.id}>
                                   {payee.name}

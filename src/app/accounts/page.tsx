@@ -144,10 +144,10 @@ export default function AccountsPage() {
     return type.charAt(0).toUpperCase() + type.slice(1);
   };
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
+  const formatCurrency = (amount: number, currency = 'INR') => {
+    return new Intl.NumberFormat(currency === 'INR' ? 'en-IN' : 'en-US', {
       style: 'currency',
-      currency: 'USD',
+      currency: currency,
     }).format(amount);
   };
 
@@ -370,13 +370,13 @@ export default function AccountsPage() {
                         </span>
                       </TableCell>
                       <TableCell className={`text-right ${account.balance < 0 ? 'text-red-600' : ''}`}>
-                        {formatCurrency(account.balance)}
+                        {formatCurrency(account.balance, account.currency)}
                       </TableCell>
                       <TableCell>
                         {account.type === 'credit' ? (
                           <div className="space-y-1 text-sm">
                             {account.credit_limit && (
-                              <div>Limit: {formatCurrency(account.credit_limit)}</div>
+                              <div>Limit: {formatCurrency(account.credit_limit, account.currency)}</div>
                             )}
                             {account.bill_generation_date && (
                               <div>Bill: {account.bill_generation_date}th</div>
