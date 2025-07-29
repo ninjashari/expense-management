@@ -6,10 +6,13 @@ import { z } from 'zod';
 const updateAccountSchema = z.object({
   name: z.string().min(1, 'Account name is required').optional(),
   type: z.enum(['checking', 'savings', 'credit', 'cash', 'investment']).optional(),
-  balance: z.number().optional(),
-  credit_limit: z.number().optional(),
-  bill_generation_date: z.number().min(1).max(31).optional(),
-  payment_due_date: z.number().min(1).max(31).optional(),
+  balance: z.union([z.number(), z.string().transform((val) => parseFloat(val))]).optional(),
+  credit_limit: z.union([z.number(), z.null()]).optional(),
+  bill_generation_date: z.union([z.number().min(1).max(31), z.null()]).optional(),
+  payment_due_date: z.union([z.number().min(1).max(31), z.null()]).optional(),
+  status: z.enum(['active', 'inactive', 'closed']).optional(),
+  opening_date: z.string().optional(),
+  currency: z.string().optional(),
 });
 
 export async function GET(
@@ -24,7 +27,7 @@ export async function GET(
 
     const { id } = await params;
     const result = await pool.query(
-      'SELECT id, name, type, balance, credit_limit, bill_generation_date, payment_due_date, created_at, updated_at FROM accounts WHERE id = $1 AND user_id = $2',
+      'SELECT id, name, type, balance, credit_limit, bill_generation_date, payment_due_date, status, opening_date, currency, created_at, updated_at FROM accounts WHERE id = $1 AND user_id = $2',
       [id, user.id]
     );
 
@@ -104,12 +107,24 @@ export async function PUT(
       updateFields.push(`payment_due_date = $${paramIndex++}`);
       updateValues.push(updateData.payment_due_date);
     }
+    if (updateData.status !== undefined) {
+      updateFields.push(`status = $${paramIndex++}`);
+      updateValues.push(updateData.status);
+    }
+    if (updateData.opening_date !== undefined) {
+      updateFields.push(`opening_date = $${paramIndex++}`);
+      updateValues.push(updateData.opening_date);
+    }
+    if (updateData.currency !== undefined) {
+      updateFields.push(`currency = $${paramIndex++}`);
+      updateValues.push(updateData.currency);
+    }
 
     updateFields.push(`updated_at = CURRENT_TIMESTAMP`);
     updateValues.push(id, user.id);
 
     const result = await pool.query(
-      `UPDATE accounts SET ${updateFields.join(', ')} WHERE id = $${paramIndex++} AND user_id = $${paramIndex} RETURNING id, name, type, balance, credit_limit, bill_generation_date, payment_due_date, created_at, updated_at`,
+      `UPDATE accounts SET ${updateFields.join(', ')} WHERE id = $${paramIndex++} AND user_id = $${paramIndex} RETURNING id, name, type, balance, credit_limit, bill_generation_date, payment_due_date, status, opening_date, currency, created_at, updated_at`,
       updateValues
     );
 

@@ -26,10 +26,16 @@ export default function AccountsPage() {
     credit_limit?: number;
     bill_generation_date?: number;
     payment_due_date?: number;
+    status: 'active' | 'inactive' | 'closed';
+    opening_date: string;
+    currency: string;
   }>({
     name: '',
     type: 'checking',
     balance: 0,
+    status: 'active',
+    opening_date: new Date().toISOString().split('T')[0],
+    currency: 'INR',
   });
 
   useEffect(() => {
@@ -91,6 +97,9 @@ export default function AccountsPage() {
       credit_limit: account.credit_limit,
       bill_generation_date: account.bill_generation_date,
       payment_due_date: account.payment_due_date,
+      status: account.status,
+      opening_date: new Date(account.opening_date).toISOString().split('T')[0],
+      currency: account.currency,
     });
     setDialogOpen(true);
   };
@@ -125,6 +134,9 @@ export default function AccountsPage() {
       credit_limit: undefined,
       bill_generation_date: undefined,
       payment_due_date: undefined,
+      status: 'active',
+      opening_date: new Date().toISOString().split('T')[0],
+      currency: 'INR',
     });
   };
 
@@ -208,6 +220,50 @@ export default function AccountsPage() {
                       onChange={(e) => setFormData({ ...formData, balance: parseFloat(e.target.value) || 0 })}
                     />
                   </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="grid gap-2">
+                      <Label htmlFor="status">Status</Label>
+                      <Select
+                        value={formData.status}
+                        onValueChange={(value: 'active' | 'inactive' | 'closed') => setFormData({ ...formData, status: value })}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="active">Active</SelectItem>
+                          <SelectItem value="inactive">Inactive</SelectItem>
+                          <SelectItem value="closed">Closed</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="currency">Currency</Label>
+                      <Select
+                        value={formData.currency}
+                        onValueChange={(value: string) => setFormData({ ...formData, currency: value })}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select currency" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="INR">INR (₹)</SelectItem>
+                          <SelectItem value="USD">USD ($)</SelectItem>
+                          <SelectItem value="EUR">EUR (€)</SelectItem>
+                          <SelectItem value="GBP">GBP (£)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="opening_date">Opening Date</Label>
+                    <Input
+                      id="opening_date"
+                      type="date"
+                      value={formData.opening_date}
+                      onChange={(e) => setFormData({ ...formData, opening_date: e.target.value })}
+                    />
+                  </div>
                   
                   {formData.type === 'credit' && (
                     <>
@@ -284,17 +340,34 @@ export default function AccountsPage() {
                   <TableRow>
                     <TableHead>Name</TableHead>
                     <TableHead>Type</TableHead>
+                    <TableHead>Status</TableHead>
                     <TableHead className="text-right">Balance</TableHead>
                     <TableHead>Credit Details</TableHead>
-                    <TableHead>Created</TableHead>
+                    <TableHead>Opening Date</TableHead>
                     <TableHead className="w-[70px]">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {accounts.map((account) => (
                     <TableRow key={account.id}>
-                      <TableCell className="font-medium">{account.name}</TableCell>
+                      <TableCell className="font-medium">
+                        <div>
+                          <div>{account.name}</div>
+                          <div className="text-xs text-muted-foreground">{account.currency}</div>
+                        </div>
+                      </TableCell>
                       <TableCell>{formatAccountType(account.type)}</TableCell>
+                      <TableCell>
+                        <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
+                          account.status === 'active' 
+                            ? 'bg-green-100 text-green-800' 
+                            : account.status === 'inactive'
+                            ? 'bg-yellow-100 text-yellow-800'
+                            : 'bg-red-100 text-red-800'
+                        }`}>
+                          {account.status.charAt(0).toUpperCase() + account.status.slice(1)}
+                        </span>
+                      </TableCell>
                       <TableCell className={`text-right ${account.balance < 0 ? 'text-red-600' : ''}`}>
                         {formatCurrency(account.balance)}
                       </TableCell>
@@ -316,7 +389,7 @@ export default function AccountsPage() {
                         )}
                       </TableCell>
                       <TableCell>
-                        {new Date(account.created_at).toLocaleDateString()}
+                        {new Date(account.opening_date).toLocaleDateString()}
                       </TableCell>
                       <TableCell>
                         <DropdownMenu>

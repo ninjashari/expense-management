@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL || 'postgresql://expense_user:nezuko@localhost:5432/expenses',
+  connectionString: process.env.DATABASE_URL
 });
 
 async function seedDatabase() {

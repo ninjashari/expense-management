@@ -16,6 +16,9 @@ export interface Account {
   credit_limit?: number;
   bill_generation_date?: number;
   payment_due_date?: number;
+  status: 'active' | 'inactive' | 'closed';
+  opening_date: Date;
+  currency: string;
   created_at: Date;
   updated_at: Date;
 }

@@ -6,10 +6,13 @@ import { z } from 'zod';
 const createAccountSchema = z.object({
   name: z.string().min(1, 'Account name is required'),
   type: z.enum(['checking', 'savings', 'credit', 'cash', 'investment']),
-  balance: z.number().default(0),
-  credit_limit: z.number().optional(),
-  bill_generation_date: z.number().min(1).max(31).optional(),
-  payment_due_date: z.number().min(1).max(31).optional(),
+  balance: z.union([z.number(), z.string().transform((val) => parseFloat(val))]).default(0),
+  credit_limit: z.union([z.number(), z.null()]).optional(),
+  bill_generation_date: z.union([z.number().min(1).max(31), z.null()]).optional(),
+  payment_due_date: z.union([z.number().min(1).max(31), z.null()]).optional(),
+  status: z.enum(['active', 'inactive', 'closed']).default('active'),
+  opening_date: z.string().optional(),
+  currency: z.string().default('INR'),
 });
 
 export async function GET(request: NextRequest) {
@@ -20,7 +23,7 @@ export async function GET(request: NextRequest) {
     }
 
     const result = await pool.query(
-      'SELECT id, name, type, balance, credit_limit, bill_generation_date, payment_due_date, created_at, updated_at FROM accounts WHERE user_id = $1 ORDER BY created_at DESC',
+      'SELECT id, name, type, balance, credit_limit, bill_generation_date, payment_due_date, status, opening_date, currency, created_at, updated_at FROM accounts WHERE user_id = $1 ORDER BY created_at DESC',
       [user.id]
     );
 
@@ -39,7 +42,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { name, type, balance, credit_limit, bill_generation_date, payment_due_date } = createAccountSchema.parse(body);
+    const { name, type, balance, credit_limit, bill_generation_date, payment_due_date, status, opening_date, currency } = createAccountSchema.parse(body);
 
     const existingAccount = await pool.query(
       'SELECT id FROM accounts WHERE user_id = $1 AND name = $2',
@@ -54,8 +57,8 @@ export async function POST(request: NextRequest) {
     }
 
     const result = await pool.query(
-      'INSERT INTO accounts (user_id, name, type, balance, credit_limit, bill_generation_date, payment_due_date) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id, name, type, balance, credit_limit, bill_generation_date, payment_due_date, created_at, updated_at',
-      [user.id, name, type, balance, credit_limit, bill_generation_date, payment_due_date]
+      'INSERT INTO accounts (user_id, name, type, balance, credit_limit, bill_generation_date, payment_due_date, status, opening_date, currency) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id, name, type, balance, credit_limit, bill_generation_date, payment_due_date, status, opening_date, currency, created_at, updated_at',
+      [user.id, name, type, balance, credit_limit, bill_generation_date, payment_due_date, status, opening_date || new Date().toISOString().split('T')[0], currency]
     );
 
     return NextResponse.json({ account: result.rows[0] }, { status: 201 });
