@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Plus, MoreHorizontal, Edit, Trash2, Mail, Phone, MapPin } from 'lucide-react';
+import { Plus, MoreHorizontal, Edit, Trash2 } from 'lucide-react';
 import { Payee } from '@/types/database';
 import { toast } from 'sonner';
 
@@ -20,9 +20,6 @@ export default function PayeesPage() {
   const [editingPayee, setEditingPayee] = useState<Payee | null>(null);
   const [formData, setFormData] = useState({
     name: '',
-    email: '',
-    phone: '',
-    address: '',
   });
 
   useEffect(() => {
@@ -79,9 +76,6 @@ export default function PayeesPage() {
     setEditingPayee(payee);
     setFormData({
       name: payee.name,
-      email: payee.email || '',
-      phone: payee.phone || '',
-      address: payee.address || '',
     });
     setDialogOpen(true);
   };
@@ -111,9 +105,6 @@ export default function PayeesPage() {
     setEditingPayee(null);
     setFormData({
       name: '',
-      email: '',
-      phone: '',
-      address: '',
     });
   };
 
@@ -134,56 +125,27 @@ export default function PayeesPage() {
                 Add Payee
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-md">
+            <DialogContent>
               <DialogHeader>
                 <DialogTitle>
                   {editingPayee ? 'Edit Payee' : 'Create New Payee'}
                 </DialogTitle>
                 <DialogDescription>
                   {editingPayee 
-                    ? 'Update the payee information below.' 
+                    ? 'Update the payee name below.' 
                     : 'Add a new payee to track payments and receipts.'}
                 </DialogDescription>
               </DialogHeader>
               <form onSubmit={handleSubmit}>
                 <div className="grid gap-4 py-4">
                   <div className="grid gap-2">
-                    <Label htmlFor="name">Name</Label>
+                    <Label htmlFor="name">Payee Name</Label>
                     <Input
                       id="name"
                       placeholder="e.g., John Doe or ABC Company"
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                       required
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="email">Email (Optional)</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      placeholder="email@example.com"
-                      value={formData.email}
-                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="phone">Phone (Optional)</Label>
-                    <Input
-                      id="phone"
-                      type="tel"
-                      placeholder="+1 (555) 123-4567"
-                      value={formData.phone}
-                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="address">Address (Optional)</Label>
-                    <Input
-                      id="address"
-                      placeholder="123 Main St, City, State"
-                      value={formData.address}
-                      onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                     />
                   </div>
                 </div>
@@ -204,7 +166,7 @@ export default function PayeesPage() {
           <CardHeader>
             <CardTitle>Your Payees</CardTitle>
             <CardDescription>
-              A list of all your payees and their contact information
+              A list of all your payees for transactions
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -215,11 +177,11 @@ export default function PayeesPage() {
                 No payees found. Create your first payee to get started.
               </div>
             ) : (
-              <Table>
+              <div className="overflow-x-auto">
+                <Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead>Name</TableHead>
-                    <TableHead>Contact Information</TableHead>
                     <TableHead>Created</TableHead>
                     <TableHead className="w-[70px]">Actions</TableHead>
                   </TableRow>
@@ -228,31 +190,6 @@ export default function PayeesPage() {
                   {payees.map((payee) => (
                     <TableRow key={payee.id}>
                       <TableCell className="font-medium">{payee.name}</TableCell>
-                      <TableCell>
-                        <div className="space-y-1 text-sm">
-                          {payee.email && (
-                            <div className="flex items-center space-x-2">
-                              <Mail className="w-3 h-3 text-muted-foreground" />
-                              <span>{payee.email}</span>
-                            </div>
-                          )}
-                          {payee.phone && (
-                            <div className="flex items-center space-x-2">
-                              <Phone className="w-3 h-3 text-muted-foreground" />
-                              <span>{payee.phone}</span>
-                            </div>
-                          )}
-                          {payee.address && (
-                            <div className="flex items-center space-x-2">
-                              <MapPin className="w-3 h-3 text-muted-foreground" />
-                              <span>{payee.address}</span>
-                            </div>
-                          )}
-                          {!payee.email && !payee.phone && !payee.address && (
-                            <span className="text-muted-foreground">No contact info</span>
-                          )}
-                        </div>
-                      </TableCell>
                       <TableCell>
                         {new Date(payee.created_at).toLocaleDateString()}
                       </TableCell>
@@ -281,7 +218,8 @@ export default function PayeesPage() {
                     </TableRow>
                   ))}
                 </TableBody>
-              </Table>
+                </Table>
+              </div>
             )}
           </CardContent>
         </Card>

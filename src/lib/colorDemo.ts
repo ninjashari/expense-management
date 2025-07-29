@@ -26,5 +26,5 @@ export function demonstrateColorGeneration() {
 
 // You can call this in the browser console to see the demo
 if (typeof window !== 'undefined') {
-  (window as any).demonstrateColorGeneration = demonstrateColorGeneration;
+  (window as unknown as { demonstrateColorGeneration: typeof demonstrateColorGeneration }).demonstrateColorGeneration = demonstrateColorGeneration;
 }

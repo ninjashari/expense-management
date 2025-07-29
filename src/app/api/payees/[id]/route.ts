@@ -5,9 +5,6 @@ import { z } from 'zod';
 
 const updatePayeeSchema = z.object({
   name: z.string().min(1, 'Payee name is required').optional(),
-  email: z.string().email('Invalid email address').optional(),
-  phone: z.string().optional(),
-  address: z.string().optional(),
 });
 
 export async function GET(
@@ -22,7 +19,7 @@ export async function GET(
 
     const { id } = await params;
     const result = await pool.query(
-      'SELECT id, name, email, phone, address, created_at, updated_at FROM payees WHERE id = $1 AND user_id = $2',
+      'SELECT id, name, created_at, updated_at FROM payees WHERE id = $1 AND user_id = $2',
       [id, user.id]
     );
 
@@ -82,24 +79,12 @@ export async function PUT(
       updateFields.push(`name = $${paramIndex++}`);
       updateValues.push(updateData.name);
     }
-    if (updateData.email !== undefined) {
-      updateFields.push(`email = $${paramIndex++}`);
-      updateValues.push(updateData.email || null);
-    }
-    if (updateData.phone !== undefined) {
-      updateFields.push(`phone = $${paramIndex++}`);
-      updateValues.push(updateData.phone || null);
-    }
-    if (updateData.address !== undefined) {
-      updateFields.push(`address = $${paramIndex++}`);
-      updateValues.push(updateData.address || null);
-    }
 
     updateFields.push(`updated_at = CURRENT_TIMESTAMP`);
     updateValues.push(id, user.id);
 
     const result = await pool.query(
-      `UPDATE payees SET ${updateFields.join(', ')} WHERE id = $${paramIndex++} AND user_id = $${paramIndex} RETURNING id, name, email, phone, address, created_at, updated_at`,
+      `UPDATE payees SET ${updateFields.join(', ')} WHERE id = $${paramIndex++} AND user_id = $${paramIndex} RETURNING id, name, created_at, updated_at`,
       updateValues
     );
 

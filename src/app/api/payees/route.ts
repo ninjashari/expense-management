@@ -5,9 +5,6 @@ import { z } from 'zod';
 
 const createPayeeSchema = z.object({
   name: z.string().min(1, 'Payee name is required'),
-  email: z.string().email('Invalid email address').optional(),
-  phone: z.string().optional(),
-  address: z.string().optional(),
 });
 
 export async function GET(request: NextRequest) {
@@ -18,7 +15,7 @@ export async function GET(request: NextRequest) {
     }
 
     const result = await pool.query(
-      'SELECT id, name, email, phone, address, created_at, updated_at FROM payees WHERE user_id = $1 ORDER BY name ASC',
+      'SELECT id, name, created_at, updated_at FROM payees WHERE user_id = $1 ORDER BY name ASC',
       [user.id]
     );
 
@@ -37,7 +34,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { name, email, phone, address } = createPayeeSchema.parse(body);
+    const { name } = createPayeeSchema.parse(body);
 
     const existingPayee = await pool.query(
       'SELECT id FROM payees WHERE user_id = $1 AND name = $2',
@@ -52,8 +49,8 @@ export async function POST(request: NextRequest) {
     }
 
     const result = await pool.query(
-      'INSERT INTO payees (user_id, name, email, phone, address) VALUES ($1, $2, $3, $4, $5) RETURNING id, name, email, phone, address, created_at, updated_at',
-      [user.id, name, email, phone, address]
+      'INSERT INTO payees (user_id, name) VALUES ($1, $2) RETURNING id, name, created_at, updated_at',
+      [user.id, name]
     );
 
     return NextResponse.json({ payee: result.rows[0] }, { status: 201 });
